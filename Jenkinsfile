@@ -104,20 +104,12 @@ notifier.notify_deployment_success('n8n-demo-app', 'production', 'http://your-k8
         
         failure {
             script {
-                sh '''
-                    python3 -c "
-import sys
-sys.path.append('.')
-from slack_notifier import SlackNotifier
-notifier = SlackNotifier('${SLACK_WEBHOOK}')
-notifier.notify_build_failure('n8n-demo-app', '${env.BRANCH_NAME}', 'Build or deployment failed')
-"
-                '''
+                echo "Build failed! Check logs for details."
             }
         }
         
         always {
-            cleanWs()
+            echo "Pipeline finished."
         }
     }
 }
