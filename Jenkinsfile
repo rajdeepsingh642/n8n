@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/rajdeepsingh642/n8n.git'
+                git branch: 'master', url: 'https://github.com/rajdeepsingh642/n8n.git'
             }
         }
         
