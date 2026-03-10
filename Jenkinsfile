@@ -17,18 +17,18 @@ pipeline {
         
         stage('Notify Build Start') {
             steps {
-                echo "🚀 Build started for n8n-demo-app on branch ${env.BRANCH_NAME}"
+                echo "🚀 Build started for n8n-demo-app on branch master"
                 script {
                     try {
-                        sh '''
+                        sh """
                             python3 -c "
 import sys
 sys.path.append('.')
 from slack_notifier import SlackNotifier
 notifier = SlackNotifier('${SLACK_WEBHOOK}')
-notifier.notify_build_start('n8n-demo-app', '${env.BRANCH_NAME}')
+notifier.notify_build_start('n8n-demo-app', 'master')
 "
-                        '''
+                        """
                     } catch (Exception e) {
                         echo "Slack notification failed: ${e}"
                         echo "Continuing with build..."
@@ -79,15 +79,15 @@ notifier.notify_build_start('n8n-demo-app', '${env.BRANCH_NAME}')
             echo "📦 Docker image: ${DOCKER_IMAGE}:${BUILD_NUMBER}"
             script {
                 try {
-                    sh '''
+                    sh """
                         python3 -c "
 import sys
 sys.path.append('.')
 from slack_notifier import SlackNotifier
 notifier = SlackNotifier('${SLACK_WEBHOOK}')
-notifier.notify_build_success('n8n-demo-app', '${env.BRANCH_NAME}', '${DOCKER_IMAGE}:${BUILD_NUMBER}')
+notifier.notify_build_success('n8n-demo-app', 'master', '${DOCKER_IMAGE}:${BUILD_NUMBER}')
 "
-                    '''
+                    """
                 } catch (Exception e) {
                     echo "Slack success notification failed: ${e}"
                 }
@@ -98,15 +98,15 @@ notifier.notify_build_success('n8n-demo-app', '${env.BRANCH_NAME}', '${DOCKER_IM
             echo "❌ Pipeline failed! Check logs for details."
             script {
                 try {
-                    sh '''
+                    sh """
                         python3 -c "
 import sys
 sys.path.append('.')
 from slack_notifier import SlackNotifier
 notifier = SlackNotifier('${SLACK_WEBHOOK}')
-notifier.notify_build_failure('n8n-demo-app', '${env.BRANCH_NAME}', 'Build failed - check Jenkins logs')
+notifier.notify_build_failure('n8n-demo-app', 'master', 'Build failed - check Jenkins logs')
 "
-                    '''
+                    """
                 } catch (Exception e) {
                     echo "Slack failure notification failed: ${e}"
                 }
