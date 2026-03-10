@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-demo-app
+  labels:
+    app: n8n-demo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: n8n-demo-app
+  template:
+    metadata:
+      labels:
+        app: n8n-demo-app
+    spec:
+      containers:
+      - name: n8n-demo-app
+        image: your-dockerhub-username/n8n-demo-app:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: PORT
+          value: "5000"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
