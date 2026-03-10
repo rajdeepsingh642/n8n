@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE = 'rajdeepsingh642/n8n-demo-app'
         DOCKER_REGISTRY = 'docker.io'
         // KUBECONFIG = credentials('kubeconfig')  // Temporarily disabled
-        // SLACK_WEBHOOK = credentials('slack-webhook')  // Temporarily disabled
+        SLACK_WEBHOOK = credentials('slack-webhook')
     }
     
     stages {
@@ -18,7 +18,22 @@ pipeline {
         stage('Notify Build Start') {
             steps {
                 echo "🚀 Build started for n8n-demo-app on branch ${env.BRANCH_NAME}"
-                echo "📝 Note: Slack and K8s credentials not configured yet"
+                script {
+                    try {
+                        sh '''
+                            python3 -c "
+import sys
+sys.path.append('.')
+from slack_notifier import SlackNotifier
+notifier = SlackNotifier('${SLACK_WEBHOOK}')
+notifier.notify_build_start('n8n-demo-app', '${env.BRANCH_NAME}')
+"
+                        '''
+                    } catch (Exception e) {
+                        echo "Slack notification failed: ${e}"
+                        echo "Continuing with build..."
+                    }
+                }
             }
         }
         
@@ -62,11 +77,40 @@ pipeline {
         success {
             echo "✅ Pipeline completed successfully!"
             echo "📦 Docker image: ${DOCKER_IMAGE}:${BUILD_NUMBER}"
-            echo "🌐 Next steps: Configure Docker Hub and K8s credentials"
+            script {
+                try {
+                    sh '''
+                        python3 -c "
+import sys
+sys.path.append('.')
+from slack_notifier import SlackNotifier
+notifier = SlackNotifier('${SLACK_WEBHOOK}')
+notifier.notify_build_success('n8n-demo-app', '${env.BRANCH_NAME}', '${DOCKER_IMAGE}:${BUILD_NUMBER}')
+"
+                    '''
+                } catch (Exception e) {
+                    echo "Slack success notification failed: ${e}"
+                }
+            }
         }
         
         failure {
             echo "❌ Pipeline failed! Check logs for details."
+            script {
+                try {
+                    sh '''
+                        python3 -c "
+import sys
+sys.path.append('.')
+from slack_notifier import SlackNotifier
+notifier = SlackNotifier('${SLACK_WEBHOOK}')
+notifier.notify_build_failure('n8n-demo-app', '${env.BRANCH_NAME}', 'Build failed - check Jenkins logs')
+"
+                    '''
+                } catch (Exception e) {
+                    echo "Slack failure notification failed: ${e}"
+                }
+            }
         }
         
         always {
